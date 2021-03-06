@@ -1,30 +1,34 @@
 package com.malek.giffy.ui.home
 
-import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.malek.giffy.domaine.GifRepository
 import com.malek.giffy.domaine.Result
+import com.malek.giffy.ui.BaseViewModel
 import kotlinx.coroutines.launch
 
-class HomeViewModel(private val gifRepository: GifRepository) : ViewModel() {
+class HomeViewModel(private val gifRepository: GifRepository) :
+    BaseViewModel<HomeState, HomeUserIntent>() {
 
-    val imagePreview = MutableLiveData<String>()
+    override val state = MutableLiveData<HomeState>()
 
-    init {
+    private fun getNewImage() {
+        state.value= HomeState.Loading()
         viewModelScope.launch {
             when (val resultRandom = gifRepository.getRandomGif()) {
                 is Result.Success -> {
-                    Log.e("HomeViewModel", resultRandom.data.id)
-                    imagePreview.value=resultRandom.data.preview
+                    state.value = HomeState.ImageState(previewUrl = resultRandom.data.preview)
                 }
                 is Result.Error -> {
-                    Log.e("HomeViewModelError", resultRandom.exception.toString())
-
+                    state.value = HomeState.ErrorStat(resultRandom.exception)
                 }
             }
 
         }
+    }
 
+    override fun dispatchUserIntent(userIntent: HomeUserIntent) {
+        getNewImage()
     }
 
 }
