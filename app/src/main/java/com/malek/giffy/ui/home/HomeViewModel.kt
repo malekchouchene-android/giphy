@@ -1,13 +1,30 @@
 package com.malek.giffy.ui.home
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import android.util.Log
+import androidx.lifecycle.*
+import com.malek.giffy.domaine.GifRepository
+import com.malek.giffy.domaine.Result
+import kotlinx.coroutines.launch
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(private val gifRepository: GifRepository) : ViewModel() {
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is home Fragment"
+    val imagePreview = MutableLiveData<String>()
+
+    init {
+        viewModelScope.launch {
+            when (val resultRandom = gifRepository.getRandomGif()) {
+                is Result.Success -> {
+                    Log.e("HomeViewModel", resultRandom.data.id)
+                    imagePreview.value=resultRandom.data.preview
+                }
+                is Result.Error -> {
+                    Log.e("HomeViewModelError", resultRandom.exception.toString())
+
+                }
+            }
+
+        }
+
     }
-    val text: LiveData<String> = _text
+
 }
