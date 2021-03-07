@@ -17,7 +17,7 @@ class HomeViewModel(private val gifRepository: GifRepository) :
         viewModelScope.launch {
             when (val resultRandom = gifRepository.getRandomGif()) {
                 is Result.Success -> {
-                    state.value = HomeState.ImageState(previewUrl = resultRandom.data.preview)
+                    state.value = HomeState.ImageState(previewUrl = resultRandom.data.imageUrl)
                 }
                 is Result.Error -> {
                     state.value = HomeState.ErrorStat(resultRandom.exception)

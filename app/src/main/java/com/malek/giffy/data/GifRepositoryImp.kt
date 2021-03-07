@@ -14,8 +14,8 @@ class GifRepositoryImp(private val giphyApi: GiphyApi) : GifRepository {
                 val gifDataJson = giphyApi.getRandomGif().gifDataJson
                 Result.Success<Gif>(
                     Gif(
-                        imageUrl = gifDataJson.imageOriginalUrl,
-                        preview = gifDataJson.imagePreviewUrl,
+                        imageUrl = gifDataJson.imagesJson.originalImageJson.url,
+                        preview = gifDataJson.imagesJson.fixedHeightImageJson.url,
                         id = gifDataJson.id
                     )
                 )
