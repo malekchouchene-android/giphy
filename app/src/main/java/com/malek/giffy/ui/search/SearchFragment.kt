@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.malek.giffy.R
-import com.malek.giffy.ui.home.displaySnackBarError
+import com.malek.giffy.utilities.displaySnackBarError
 import org.koin.android.viewmodel.ext.android.viewModel
 
 class SearchFragment : Fragment() {
@@ -93,6 +93,7 @@ class SearchFragment : Fragment() {
                 query?.let {
                     searViewModel.dispatchUserIntent(SearchUserIntent.NewQuery(query))
                 }
+                searchView.clearFocus()
                 return true
             }
 

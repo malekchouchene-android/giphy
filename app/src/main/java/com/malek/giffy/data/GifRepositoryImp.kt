@@ -11,7 +11,7 @@ class GifRepositoryImp(private val giphyApi: GiphyApi) : GIFRepository {
             try {
                 val gifDataJson = giphyApi.getRandomGif(tag).gifDataJson
                 Result.Success<GIF>(
-                        gifDataJson.toDomaine()
+                    gifDataJson.toDomaine()
                 )
             } catch (e: Exception) {
                 Result.Error(e)
@@ -24,12 +24,12 @@ class GifRepositoryImp(private val giphyApi: GiphyApi) : GIFRepository {
             try {
                 val gifListJson = giphyApi.getGifListByKeyWord(keyWord, offest = offest)
                 Result.Success(
-                        GIFList(
-                                images = gifListJson.gifDataJsons.map {
-                                    it.toDomaine()
-                                },
-                                pagination = gifListJson.paginationJson.toDomaine()
-                        )
+                    GIFList(
+                        images = gifListJson.gifDataJsons.map {
+                            it.toDomaine()
+                        },
+                        pagination = gifListJson.paginationJson.toDomaine()
+                    )
                 )
 
             } catch (e: Exception) {

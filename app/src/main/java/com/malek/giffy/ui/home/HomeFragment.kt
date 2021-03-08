@@ -6,18 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
-import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.resource.gif.GifDrawable
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
-import com.google.android.material.snackbar.Snackbar
 import com.malek.giffy.R
+import com.malek.giffy.utilities.displaySnackBarError
+import com.malek.giffy.utilities.showGIF
 import org.koin.android.viewmodel.ext.android.viewModel
 
 class HomeFragment : Fragment() {
@@ -46,34 +40,7 @@ class HomeFragment : Fragment() {
                 progressCircular.visibility = View.VISIBLE
             }
             it.imageUrl?.let { gif ->
-                Glide.with(this)
-                    .asGif()
-                    .listener(object : RequestListener<GifDrawable> {
-                        override fun onLoadFailed(
-                            e: GlideException?,
-                            model: Any?,
-                            target: Target<GifDrawable>?,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            progressCircular.visibility = View.GONE
-                            return false
-                        }
-
-                        override fun onResourceReady(
-                            resource: GifDrawable?,
-                            model: Any?,
-                            target: Target<GifDrawable>?,
-                            dataSource: DataSource?,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            progressCircular.visibility = View.GONE
-                            return false
-
-                        }
-
-                    })
-                    .load(gif)
-                    .into(preview)
+                preview.showGIF(fullScreen = true, progressBar = progressCircular, imageUrl = gif,placeholder = null)
             }
             it.errorString?.let { resId ->
                 progressCircular.visibility = View.GONE
@@ -91,20 +58,4 @@ class HomeFragment : Fragment() {
     }
 }
 
-fun Fragment.displaySnackBarError(
-    @StringRes messageStringRes: Int,
-    @StringRes actionTitle: Int? = null,
-    action: View.OnClickListener? = null,
-    root: View
-) {
-    Snackbar.make(
-        root,
-        getString(messageStringRes),
-        Snackbar.LENGTH_LONG
-    ).apply {
-        if (actionTitle != null && action != null) {
-            this.setAction(actionTitle, action)
-        }
-        show()
-    }
-}
+

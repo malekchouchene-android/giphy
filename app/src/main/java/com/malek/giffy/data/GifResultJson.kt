@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 data class GifDataJson(
     @SerializedName("id") val id: String,
+    @SerializedName("title") val name: String?,
     @SerializedName("images") val imagesJson: ImagesJson
 )
 
