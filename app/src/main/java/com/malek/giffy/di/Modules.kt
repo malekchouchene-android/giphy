@@ -2,7 +2,8 @@ package com.malek.giffy.di
 
 import com.malek.giffy.data.GifRepositoryImp
 import com.malek.giffy.data.GiphyApi
-import com.malek.giffy.domaine.GifRepository
+import com.malek.giffy.domaine.GIFRepository
+import com.malek.giffy.ui.search.SearchViewModel
 import com.malek.giffy.ui.home.HomeViewModel
 import okhttp3.OkHttpClient
 import org.koin.android.viewmodel.dsl.viewModel
@@ -30,7 +31,7 @@ val dataModule = module {
 }
 
 val domineModule = module {
-    single<GifRepository> {
+    single<GIFRepository> {
         GifRepositoryImp(get())
     }
 }
@@ -38,4 +39,5 @@ val domineModule = module {
 
 val appModule = module {
     viewModel { HomeViewModel(get()) }
+    viewModel { SearchViewModel(get()) }
 }

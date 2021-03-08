@@ -1,8 +1,9 @@
 <resources>
-    <string name="app_name">giffy</string>
+    <string name="app_name">Giphy</string>
     <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
+    <string name="title_dashboard">Search</string>
     <string name="unexpected_error">Une erreur est survenue</string>
     <string name="no_network_error">Vérifier votre connexion</string>
     <string name="retry">Réessayer</string>
+    <string name="empty_result">Aucun résultat trouvé</string>
 </resources>
