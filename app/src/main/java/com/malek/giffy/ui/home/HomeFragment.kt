@@ -6,9 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
+import androidx.constraintlayout.widget.Group
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.bumptech.glide.Glide
 import com.malek.giffy.R
 import com.malek.giffy.utilities.displaySnackBarError
 import com.malek.giffy.utilities.showGIF
@@ -27,22 +29,26 @@ class HomeFragment : Fragment() {
         val preview: ImageView = root.findViewById(R.id.preview)
         val swipeToRefresh: SwipeRefreshLayout = root.findViewById(R.id.swipe_to_refresh)
         val progressCircular: ProgressBar = root.findViewById(R.id.progress_circular)
-
         homeViewModel.dispatchUserIntent(HomeUserIntent.GetNewImage)
 
         swipeToRefresh.setOnRefreshListener {
             homeViewModel.dispatchUserIntent(HomeUserIntent.GetNewImage)
         }
 
-        homeViewModel.state.observe(viewLifecycleOwner, Observer {
-            swipeToRefresh.isRefreshing = it.isLoading
-            if (it.isLoading && progressCircular.visibility == View.GONE) {
+        homeViewModel.state.observe(viewLifecycleOwner, Observer { homeState ->
+            swipeToRefresh.isRefreshing = homeState.isLoading
+            if (homeState.isLoading && progressCircular.visibility == View.GONE) {
                 progressCircular.visibility = View.VISIBLE
             }
-            it.imageUrl?.let { gif ->
-                preview.showGIF(fullScreen = true, progressBar = progressCircular, imageUrl = gif,placeholder = null)
+            homeState.imageUrl?.let { gif ->
+                preview.showGIF(
+                    fullScreen = true,
+                    progressBar = progressCircular,
+                    imageUrl = gif,
+                    placeholder = null
+                )
             }
-            it.errorString?.let { resId ->
+            homeState.errorString?.let { resId ->
                 progressCircular.visibility = View.GONE
                 displaySnackBarError(
                     messageStringRes = resId,
@@ -51,6 +57,15 @@ class HomeFragment : Fragment() {
                         homeViewModel.dispatchUserIntent(HomeUserIntent.GetNewImage)
                     },
                     root = root
+                )
+            }
+            homeState.errorGIF?.let {
+                preview.showGIF(
+                    fullScreen = true,
+                    progressBar = progressCircular,
+                    imageUrl = null,
+                    imageDrawable = it,
+                    placeholder = null
                 )
             }
         })

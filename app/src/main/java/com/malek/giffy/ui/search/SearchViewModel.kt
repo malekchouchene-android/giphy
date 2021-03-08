@@ -3,7 +3,7 @@ package com.malek.giffy.ui.search
 import androidx.lifecycle.viewModelScope
 import com.malek.giffy.domaine.*
 import com.malek.giffy.ui.BaseViewModel
-import com.malek.giffy.ui.formatError
+import com.malek.giffy.utilities.formatError
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
