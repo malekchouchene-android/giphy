@@ -39,30 +39,55 @@ class SearchViewModelTest : BaseTestClass() {
     fun should_update_pagination_when_user_set_new_query() {
         val searchViewModel = SearchViewModel(repository = GifRepositoryTest())
         searchViewModel.dispatchUserIntent(SearchUserIntent.NewQuery("test"))
-        Assert.assertEquals(searchViewModel.getPrivateProperty("lastPagination"), Pagination(count = 1, totalCount = 1, offset = 0))
+        Assert.assertEquals(
+            searchViewModel.getPrivateProperty("lastPagination"),
+            Pagination(count = 1, totalCount = 1, offset = 0)
+        )
     }
 
     @Test
     fun should_map_empty_state_when_no_result() {
         val searchViewModel = SearchViewModel(repository = GifRepositoryEmptyTest())
         searchViewModel.dispatchUserIntent(SearchUserIntent.NewQuery("empty"))
-        Truth.assertThat(searchViewModel.state.value).isInstanceOf(SearchState.EmptyStat::class.java)
+        Truth.assertThat(searchViewModel.state.value)
+            .isInstanceOf(SearchState.EmptyStat::class.java)
     }
 
     @Test
     fun should_map_error_state_when_error() {
         val searchViewModel = SearchViewModel(repository = GifRepositoryError(ConnectException()))
         searchViewModel.dispatchUserIntent(SearchUserIntent.NewQuery("empty"))
-        Truth.assertThat(searchViewModel.state.value).isInstanceOf(SearchState.ErrorStat::class.java)
+        Truth.assertThat(searchViewModel.state.value)
+            .isInstanceOf(SearchState.ErrorStat::class.java)
     }
 
     @Test
     fun should_not_call_repository_when_all_items_have_been_loaded() {
         //GIVEN
-        BDDMockito.given(mockSuspendGetList.suspendFunctionMock()).willAnswer { Result.Success(GIFList(images = arrayListOf(GIF(imageUrl = "test", preview = "testPreview", id = "id", previewWidth = 200, previewHeight = 200)), pagination = Pagination(count = 1, totalCount = 1, offset = 0))) }
+        BDDMockito.given(mockSuspendGetList.suspendFunctionMock()).willAnswer {
+            Result.Success(
+                GIFList(
+                    images = arrayListOf(
+                        GIF(
+                            imageUrl = "test",
+                            preview = "testPreview",
+                            id = "id",
+                            title = "title"
+                        )
+                    ), pagination = Pagination(count = 1, totalCount = 1, offset = 0)
+                )
+            )
+        }
         val searchViewModel = SearchViewModel(repository = object : GIFRepository {
             override suspend fun getRandomGif(tag: String?): Result<GIF> {
-                return Result.Success(data = GIF(imageUrl = "test", preview = "testPreview", id = "id", previewWidth = 200, previewHeight = 200))
+                return Result.Success(
+                    data = GIF(
+                        imageUrl = "test",
+                        preview = "testPreview",
+                        id = "id",
+                        title = "test"
+                    )
+                )
 
             }
 
@@ -88,17 +113,35 @@ class SearchViewModelTest : BaseTestClass() {
         //GIVEN
         val gifListMock = mutableListOf<GIF>()
         repeat(24) {
-            gifListMock.add(GIF(imageUrl = "test", preview = "testPreview", id = "id", previewWidth = 200, previewHeight = 200))
+            gifListMock.add(
+                GIF(
+                    imageUrl = "test",
+                    preview = "testPreview",
+                    id = "id",
+                    title = "title"
+                )
+            )
         }
 
         BDDMockito.given(mockSuspendGetList.suspendFunctionMock()).willAnswer {
             Result.Success(
-                    GIFList(images = gifListMock.toList(), pagination = Pagination(count = 24, totalCount = 1000, offset = 0)))
+                GIFList(
+                    images = gifListMock.toList(),
+                    pagination = Pagination(count = 24, totalCount = 1000, offset = 0)
+                )
+            )
         }
         var startRequest = true
         val searchViewModel = SearchViewModel(repository = object : GIFRepository {
             override suspend fun getRandomGif(tag: String?): Result<GIF> {
-                return Result.Success(data = GIF(imageUrl = "test", preview = "testPreview", id = "id", previewWidth = 200, previewHeight = 200))
+                return Result.Success(
+                    data = GIF(
+                        imageUrl = "test",
+                        preview = "testPreview",
+                        id = "id",
+                        title = "tilte"
+                    )
+                )
 
             }
 
