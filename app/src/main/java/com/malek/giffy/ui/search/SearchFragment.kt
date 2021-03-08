@@ -60,12 +60,6 @@ class SearchFragment : Fragment() {
                     state.errorString?.let {
                         displaySnackBarError(
                             messageStringRes = state.errorString,
-                            actionTitle = R.string.retry,
-                            action = View.OnClickListener {
-                                searchView.query?.let { query ->
-                                    searViewModel.dispatchUserIntent(SearchUserIntent.NewQuery(query = query.toString()))
-                                }
-                            },
                             root = view
                         )
                     }

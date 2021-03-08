@@ -93,8 +93,8 @@ class HomeFragment : Fragment() {
 
 fun Fragment.displaySnackBarError(
     @StringRes messageStringRes: Int,
-    @StringRes actionTitle: Int?,
-    action: View.OnClickListener?,
+    @StringRes actionTitle: Int? = null,
+    action: View.OnClickListener? = null,
     root: View
 ) {
     Snackbar.make(

@@ -12,7 +12,7 @@ data class GifResultJson(
 )
 
 data class ImagesJson(
-    @SerializedName("original") val originalImageJson: ImageItemJson,
+    @SerializedName("downsized") val originalImageJson: ImageItemJson,
     @SerializedName("fixed_height") val fixedHeightImageJson: ImageItemJson
 )
 
