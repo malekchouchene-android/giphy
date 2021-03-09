@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.bumptech.glide.Glide
 import com.malek.giffy.R
 import com.malek.giffy.utilities.displaySnackBarError
@@ -105,7 +106,7 @@ class SearchFragment : Fragment() {
     }
 
     private fun initRecyclerView(recyclerView: RecyclerView, progressBar: ProgressBar) {
-        recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
+        recyclerView.layoutManager = StaggeredGridLayoutManager(2, RecyclerView.VERTICAL)
         gifListAdapter = GifListAdapter()
         recyclerView.adapter = gifListAdapter
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {

@@ -14,7 +14,7 @@ import com.malek.giffy.utilities.showGIF
 class GifListAdapter : RecyclerView.Adapter<GifListAdapter.GIFViewHolder>() {
     private val dataSet = mutableListOf<GIF>()
 
-    class GIFViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
+    class GIFViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
         private val preview = view.findViewById<ImageView>(R.id.preview_item_list)
         fun bind(gif: GIF) {
             view.setOnClickListener {
