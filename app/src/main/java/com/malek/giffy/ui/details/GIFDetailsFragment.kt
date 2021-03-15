@@ -1,6 +1,7 @@
 package com.malek.giffy.ui.details
 
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.ImageView
@@ -17,10 +18,15 @@ import com.malek.giffy.utilities.showGIF
 class GIFDetailsFragment : DialogFragment() {
     private val gifDetailsFragmentArgs: GIFDetailsFragmentArgs by navArgs()
     private val activityViewModel by activityViewModels<MainViewModel>()
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_details, container, false)
     }
@@ -41,10 +47,10 @@ class GIFDetailsFragment : DialogFragment() {
 
         view.findViewById<ImageView>(R.id.image_details)?.apply {
             this.showGIF(
-                fullScreen = true,
-                progressBar = view.findViewById(R.id.progress_circular),
-                imageUrl = gifDetailsFragmentArgs.gifImageUrl,
-                placeholder = null
+                    fullScreen = true,
+                    progressBar = view.findViewById(R.id.progress_circular),
+                    imageUrl = gifDetailsFragmentArgs.gifImageUrl,
+                    placeholder = null
             )
         }
         view.findViewById<MaterialToolbar>(R.id.toolbar)?.let {
@@ -57,6 +63,23 @@ class GIFDetailsFragment : DialogFragment() {
                 dismiss()
             }
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.details_menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.share) {
+            val i = Intent(Intent.ACTION_SEND)
+            i.type = "text/plain"
+            i.putExtra(Intent.EXTRA_SUBJECT, "Sharing URL")
+            i.putExtra(Intent.EXTRA_TEXT, gifDetailsFragmentArgs.gifImageUrl)
+            startActivity(Intent.createChooser(i, "Share URL"))
+        }
+        return super.onOptionsItemSelected(item)
+
     }
 
     override fun onDismiss(dialog: DialogInterface) {

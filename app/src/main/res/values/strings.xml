@@ -7,4 +7,5 @@
     <string name="retry">Réessayer</string>
     <string name="empty_result">Aucun résultat trouvé</string>
     <string name="search_hint">Recherche GIF</string>
+    <string name="share_title">Share</string>
 </resources>

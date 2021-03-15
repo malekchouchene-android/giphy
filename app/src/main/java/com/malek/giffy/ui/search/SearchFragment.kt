@@ -13,6 +13,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import androidx.recyclerview.widget.StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS
 import com.bumptech.glide.Glide
 import com.malek.giffy.R
 import com.malek.giffy.utilities.displaySnackBarError
@@ -23,9 +24,9 @@ class SearchFragment : Fragment() {
     private val searViewModel by viewModel<SearchViewModel>()
     private lateinit var gifListAdapter: GifListAdapter
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_dashboard, container, false)
     }
@@ -60,8 +61,8 @@ class SearchFragment : Fragment() {
                     emptyView.visibility = View.GONE
                     state.errorString?.let {
                         displaySnackBarError(
-                            messageStringRes = state.errorString,
-                            root = view
+                                messageStringRes = state.errorString,
+                                root = view
                         )
                     }
                 }
@@ -71,9 +72,9 @@ class SearchFragment : Fragment() {
                     emptyView.visibility = View.VISIBLE
                     state.randomEmptyGIF?.let {
                         Glide.with(this)
-                            .asGif()
-                            .load(it)
-                            .into(emptyImageView)
+                                .asGif()
+                                .load(it)
+                                .into(emptyImageView)
                     }
                     gifListAdapter.updateData(emptyList())
                 }
@@ -106,7 +107,9 @@ class SearchFragment : Fragment() {
     }
 
     private fun initRecyclerView(recyclerView: RecyclerView, progressBar: ProgressBar) {
-        recyclerView.layoutManager = StaggeredGridLayoutManager(2, RecyclerView.VERTICAL)
+        val staggeredGridLayoutManager = StaggeredGridLayoutManager(2, RecyclerView.VERTICAL)
+        staggeredGridLayoutManager.gapStrategy = GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS
+        recyclerView.layoutManager = staggeredGridLayoutManager
         gifListAdapter = GifListAdapter()
         recyclerView.adapter = gifListAdapter
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {

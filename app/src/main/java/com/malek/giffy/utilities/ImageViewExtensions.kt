@@ -16,47 +16,47 @@ import kotlin.random.Random
 
 
 fun ImageView.showGIF(
-    fullScreen: Boolean,
-    progressBar: ProgressBar?,
-    @RawRes imageDrawable: Int? = null,
-    placeholder: Drawable?,
-    imageUrl: String?
+        fullScreen: Boolean,
+        progressBar: ProgressBar?,
+        @RawRes imageDrawable: Int? = null,
+        placeholder: Drawable?,
+        imageUrl: String?
 ) {
     Glide.with(this)
-        .asGif()
-        .apply {
-            if (fullScreen) this.fitCenter()
-            if (placeholder != null) {
-                this.placeholder(placeholder)
+            .asGif()
+            .apply {
+                if (fullScreen) this.fitCenter()
+                if (placeholder != null) {
+                    this.placeholder(placeholder)
+                }
+                if (progressBar != null) {
+                    this.listener(object : RequestListener<GifDrawable> {
+                        override fun onLoadFailed(
+                                e: GlideException?,
+                                model: Any?,
+                                target: Target<GifDrawable>?,
+                                isFirstResource: Boolean
+                        ): Boolean {
+                            progressBar.visibility = View.GONE
+                            return false
+                        }
+
+                        override fun onResourceReady(
+                                resource: GifDrawable?,
+                                model: Any?,
+                                target: Target<GifDrawable>?,
+                                dataSource: DataSource?,
+                                isFirstResource: Boolean
+                        ): Boolean {
+                            progressBar.visibility = View.GONE
+                            return false
+
+                        }
+
+                    })
+                }
             }
-            if (progressBar != null) {
-                this.listener(object : RequestListener<GifDrawable> {
-                    override fun onLoadFailed(
-                        e: GlideException?,
-                        model: Any?,
-                        target: Target<GifDrawable>?,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        progressBar.visibility = View.GONE
-                        return false
-                    }
-
-                    override fun onResourceReady(
-                        resource: GifDrawable?,
-                        model: Any?,
-                        target: Target<GifDrawable>?,
-                        dataSource: DataSource?,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        progressBar.visibility = View.GONE
-                        return false
-
-                    }
-
-                })
-            }
-        }
-        .error(randomErrorGif())
-        .load(imageUrl ?: imageDrawable)
-        .into(this)
+            .error(randomErrorGif())
+            .load(imageUrl ?: imageDrawable)
+            .into(this)
 }
