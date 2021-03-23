@@ -35,6 +35,7 @@ class GIFDetailsFragment : DialogFragment() {
         return R.style.FullScreenDialog
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         dialog?.window?.attributes?.windowAnimations = R.style.FullScreenDialog

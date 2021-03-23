@@ -2,40 +2,41 @@ package com.malek.giffy.data
 
 import com.malek.giffy.domaine.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 import java.lang.Exception
 
 class GifRepositoryImp(private val giphyApi: GiphyApi) : GIFRepository {
-    override suspend fun getRandomGif(tag: String?): Result<GIF> {
-        return withContext(Dispatchers.IO) {
+    override fun getRandomGif(tag: String?): Flow<Result<GIF>> {
+        return flow {
             try {
-                val gifDataJson = giphyApi.getRandomGif(tag).gifDataJson
-                Result.Success<GIF>(
-                    gifDataJson.toDomaine()
-                )
+                emit(Result.Success(giphyApi.getRandomGif(tag).gifDataJson.toDomaine()))
             } catch (e: Exception) {
-                Result.Error(e)
+                emit(Result.Error(e))
             }
         }
     }
 
-    override suspend fun getGIFsByKeyword(keyWord: String, offest: Int): Result<GIFList> {
-        return withContext(Dispatchers.IO) {
+
+    override suspend fun getGIFsByKeyword(keyWord: String, offest: Int): Flow<Result<GIFList>> {
+        return flow {
             try {
                 val gifListJson = giphyApi.getGifListByKeyWord(keyWord, offest = offest)
-                Result.Success(
-                    GIFList(
-                        images = gifListJson.gifDataJsons.map {
-                            it.toDomaine()
-                        },
-                        pagination = gifListJson.paginationJson.toDomaine()
+                emit(
+                    Result.Success(
+                        GIFList(
+                            images = gifListJson.gifDataJsons.map {
+                                it.toDomaine()
+                            },
+                            pagination = gifListJson.paginationJson.toDomaine()
+                        )
                     )
                 )
-
             } catch (e: Exception) {
-                Result.Error(e)
-
+                emit(Result.Error(e))
             }
-        }
+        }.flowOn(Dispatchers.IO)
+
+
     }
 }

@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.malek.giffy.R
+import com.malek.giffy.databinding.FragmentHomeBinding
 import com.malek.giffy.utilities.displaySnackBarError
 import com.malek.giffy.utilities.showGIF
 import org.koin.android.viewmodel.ext.android.viewModel
@@ -19,58 +20,46 @@ import org.koin.android.viewmodel.ext.android.viewModel
 class HomeFragment : Fragment() {
 
     private val homeViewModel by viewModel<HomeViewModel>()
+    private lateinit var binding: FragmentHomeBinding
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val root = inflater.inflate(R.layout.fragment_home, container, false)
-        val preview: ImageView = root.findViewById(R.id.preview)
-        val swipeToRefresh: SwipeRefreshLayout = root.findViewById(R.id.swipe_to_refresh)
-        val progressCircular: ProgressBar = root.findViewById(R.id.progress_circular)
+    ): View {
+        binding = FragmentHomeBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.lifecycleOwner = this
+        binding.model = homeViewModel
         homeViewModel.dispatchUserIntent(HomeUserIntent.GetNewImage)
 
-        swipeToRefresh.setOnRefreshListener {
+        binding.swipeToRefresh.setOnRefreshListener {
             homeViewModel.dispatchUserIntent(HomeUserIntent.GetNewImage)
         }
 
+
         homeViewModel.state.observe(viewLifecycleOwner, Observer { homeState ->
-            swipeToRefresh.isRefreshing = homeState.isLoading
-            if (homeState.isLoading && progressCircular.visibility == View.GONE) {
-                progressCircular.visibility = View.VISIBLE
-            }
-            homeState.imageUrl?.let { gif ->
-                preview.showGIF(
-                    fullScreen = true,
-                    progressBar = progressCircular,
-                    imageUrl = gif,
-                    placeholder = null
-                )
-            }
+
             homeState.errorString?.let { resId ->
-                progressCircular.visibility = View.GONE
                 displaySnackBarError(
                     messageStringRes = resId,
                     actionTitle = R.string.retry,
                     action = View.OnClickListener {
                         homeViewModel.dispatchUserIntent(HomeUserIntent.GetNewImage)
                     },
-                    root = root
+                    root = view
                 )
             }
-            homeState.errorGIF?.let {
-                preview.showGIF(
-                    fullScreen = true,
-                    progressBar = progressCircular,
-                    imageUrl = null,
-                    imageDrawable = it,
-                    placeholder = null
-                )
-            }
+
+
         })
-        return root
+
     }
+
 }
 
 

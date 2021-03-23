@@ -7,6 +7,8 @@ import com.malek.giffy.ui.search.SearchState
 import com.malek.giffy.ui.search.SearchUserIntent
 import com.malek.giffy.ui.search.SearchViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
@@ -79,21 +81,28 @@ class SearchViewModelTest : BaseTestClass() {
             )
         }
         val searchViewModel = SearchViewModel(repository = object : GIFRepository {
-            override suspend fun getRandomGif(tag: String?): Result<GIF> {
-                return Result.Success(
-                    data = GIF(
-                        imageUrl = "test",
-                        preview = "testPreview",
-                        id = "id",
-                        title = "test"
+            override fun getRandomGif(tag: String?): Flow<Result<GIF>> {
+                return flow {
+                    emit(
+                        Result.Success(
+                            data = GIF(
+                                imageUrl = "test",
+                                preview = "testPreview",
+                                id = "id",
+                                title = "test"
+                            )
+                        )
                     )
-                )
+                }
 
             }
 
-            override suspend fun getGIFsByKeyword(keyWord: String, offest: Int): Result<GIFList> {
-                return runBlocking {
-                    mockSuspendGetList.suspendFunctionMock()
+            override suspend fun getGIFsByKeyword(
+                keyWord: String,
+                offest: Int
+            ): Flow<Result<GIFList>> {
+                return flow {
+                    emit(mockSuspendGetList.suspendFunctionMock())
                 }
             }
 
@@ -133,20 +142,27 @@ class SearchViewModelTest : BaseTestClass() {
         }
         var startRequest = true
         val searchViewModel = SearchViewModel(repository = object : GIFRepository {
-            override suspend fun getRandomGif(tag: String?): Result<GIF> {
-                return Result.Success(
-                    data = GIF(
-                        imageUrl = "test",
-                        preview = "testPreview",
-                        id = "id",
-                        title = "tilte"
+            override fun getRandomGif(tag: String?): Flow<Result<GIF>> {
+                return flow {
+                    emit(
+                        Result.Success(
+                            data = GIF(
+                                imageUrl = "test",
+                                preview = "testPreview",
+                                id = "id",
+                                title = "tilte"
+                            )
+                        )
                     )
-                )
+                }
 
             }
 
-            override suspend fun getGIFsByKeyword(keyWord: String, offest: Int): Result<GIFList> {
-                return runBlocking {
+            override suspend fun getGIFsByKeyword(
+                keyWord: String,
+                offest: Int
+            ): Flow<Result<GIFList>> {
+                return flow {
                     //THEN
                     Truth.assertThat(keyWord).isEqualTo("test")
 
@@ -157,7 +173,7 @@ class SearchViewModelTest : BaseTestClass() {
                         Truth.assertThat(offest).isEqualTo(24)
 
                     }
-                    mockSuspendGetList.suspendFunctionMock()
+                    emit(mockSuspendGetList.suspendFunctionMock())
                 }
             }
 
