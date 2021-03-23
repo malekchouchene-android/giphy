@@ -1,6 +1,8 @@
 package com.malek.giffy.domaine
 
+import kotlinx.coroutines.flow.Flow
+
 interface GIFRepository {
-    suspend fun getRandomGif(tag: String?): Result<GIF>
-    suspend fun getGIFsByKeyword(keyWord: String, offest: Int): Result<GIFList>
+    fun getRandomGif(tag: String?): Flow<Result<GIF>>
+    suspend fun getGIFsByKeyword(keyWord: String, offest: Int): Flow<Result<GIFList>>
 }

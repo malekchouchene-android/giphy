@@ -4,6 +4,7 @@ plugins {
     id 'kotlin-android'
     id 'androidx.navigation.safeargs'
     id "org.sonarqube" version "3.0"
+    id "kotlin-kapt"
 }
 
 android {
@@ -25,6 +26,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    buildFeatures {
+        dataBinding true
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

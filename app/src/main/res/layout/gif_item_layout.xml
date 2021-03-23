@@ -1,24 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
+<layout>
 
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="4dp"
-    app:cardElevation="2dp"
-    app:cardPreventCornerOverlap="true">
+    <data>
 
-    <ImageView
-        android:id="@+id/preview_item_list"
+        <variable
+            name="model"
+            type="com.malek.giffy.ui.search.GIFItemViewModel" />
+    </data>
+
+    <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:adjustViewBounds="true"
-        android:contentDescription="@null"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-</androidx.cardview.widget.CardView>
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        app:cardCornerRadius="4dp"
+        app:cardElevation="2dp"
+        app:cardPreventCornerOverlap="true">
 
+        <ImageView
+            android:id="@+id/preview_item_list"
+            imageUrl="@{model.gif.imageUrl}"
+            placeHolder="@{model.placeholder}"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:adjustViewBounds="true"
+            android:contentDescription="@null"
+            android:onClick="@{(view)->model.onClick(view)}"
+            android:scaleType="fitXY"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.cardview.widget.CardView>
+
+</layout>
 
 

@@ -4,98 +4,56 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.ProgressBar
 import androidx.appcompat.widget.SearchView
-import androidx.constraintlayout.widget.Group
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS
-import com.bumptech.glide.Glide
-import com.malek.giffy.R
+import com.malek.giffy.databinding.FragmentDashboardBinding
 import com.malek.giffy.utilities.displaySnackBarError
 import org.koin.android.viewmodel.ext.android.viewModel
 
 class SearchFragment : Fragment() {
 
-    private val searViewModel by viewModel<SearchViewModel>()
-    private lateinit var gifListAdapter: GifListAdapter
+    private val searchViewModel by viewModel<SearchViewModel>()
+    lateinit var binding: FragmentDashboardBinding
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_dashboard, container, false)
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentDashboardBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val searchView = view.findViewById<SearchView>(R.id.search_view)
-        val progressCircular = view.findViewById<ProgressBar>(R.id.progress_circular)
-        val imagesList = view.findViewById<RecyclerView>(R.id.images_list)
-        val emptyView = view.findViewById<Group>(R.id.empty_view)
-        val emptyImageView = view.findViewById<ImageView>(R.id.empty_view_image)
-        val progressBarLoadMore = view.findViewById<ProgressBar>(R.id.progress_loading_more)
-        initSearchView(searchView)
-        initRecyclerView(recyclerView = imagesList, progressBar = progressBarLoadMore)
-
-        searViewModel.state.observe(viewLifecycleOwner, Observer { state ->
-            when (state) {
-                SearchState.Loading -> {
-                    progressCircular.visibility = View.VISIBLE
-                    emptyView.visibility = View.GONE
-                }
-                is SearchState.ImageListStat -> {
-                    progressCircular.visibility = View.GONE
-                    progressBarLoadMore.visibility = View.GONE
-                    emptyView.visibility = View.GONE
-                    gifListAdapter.updateData(state.imageList ?: emptyList())
-
-                }
-                is SearchState.ErrorStat -> {
-                    progressCircular.visibility = View.GONE
-                    progressBarLoadMore.visibility = View.GONE
-                    emptyView.visibility = View.GONE
-                    state.errorString?.let {
-                        displaySnackBarError(
-                                messageStringRes = state.errorString,
-                                root = view
-                        )
-                    }
-                }
-                is SearchState.EmptyStat -> {
-                    progressCircular.visibility = View.GONE
-                    progressBarLoadMore.visibility = View.GONE
-                    emptyView.visibility = View.VISIBLE
-                    state.randomEmptyGIF?.let {
-                        Glide.with(this)
-                                .asGif()
-                                .load(it)
-                                .into(emptyImageView)
-                    }
-                    gifListAdapter.updateData(emptyList())
-                }
-                SearchState.GetToEnd -> {
-                    progressCircular.visibility = View.GONE
-                    progressBarLoadMore.visibility = View.GONE
+        binding.lifecycleOwner = this
+        binding.viewModel = searchViewModel
+        initSearchView()
+        initRecyclerView()
+        searchViewModel.state.observe(viewLifecycleOwner, Observer { searchState ->
+            if (searchState is SearchState.ErrorStat) {
+                searchState.errorString?.let {
+                    displaySnackBarError(
+                        messageStringRes = it,
+                        root = view
+                    )
                 }
             }
         })
 
-
     }
 
-    private fun initSearchView(searchView: SearchView) {
-        searchView.requestFocus()
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+    private fun initSearchView() {
+        binding.searchView.requestFocus()
+        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let {
-                    searViewModel.dispatchUserIntent(SearchUserIntent.NewQuery(query))
+                    searchViewModel.dispatchUserIntent(SearchUserIntent.NewQuery(query))
                 }
-                searchView.clearFocus()
+                binding.searchView.clearFocus()
                 return true
             }
 
@@ -106,18 +64,15 @@ class SearchFragment : Fragment() {
         })
     }
 
-    private fun initRecyclerView(recyclerView: RecyclerView, progressBar: ProgressBar) {
+    private fun initRecyclerView() {
         val staggeredGridLayoutManager = StaggeredGridLayoutManager(2, RecyclerView.VERTICAL)
         staggeredGridLayoutManager.gapStrategy = GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS
-        recyclerView.layoutManager = staggeredGridLayoutManager
-        gifListAdapter = GifListAdapter()
-        recyclerView.adapter = gifListAdapter
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        binding.imagesList.layoutManager = staggeredGridLayoutManager
+        binding.imagesList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
-                if (!recyclerView.canScrollVertically(1) && newState == RecyclerView.SCROLL_STATE_IDLE && gifListAdapter.itemCount > 0) {
-                    progressBar.visibility = View.VISIBLE
-                    searViewModel.dispatchUserIntent(SearchUserIntent.NextPage)
+                if (!recyclerView.canScrollVertically(1) && newState == RecyclerView.SCROLL_STATE_IDLE && binding.imagesList.adapter?.itemCount ?: 0 > 0) {
+                    searchViewModel.dispatchUserIntent(SearchUserIntent.NextPage)
                 }
             }
         })

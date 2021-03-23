@@ -4,11 +4,14 @@ import androidx.lifecycle.viewModelScope
 import com.malek.giffy.domaine.*
 import com.malek.giffy.ui.BaseViewModel
 import com.malek.giffy.utilities.formatError
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class SearchViewModel(private val repository: GIFRepository) :
-        BaseViewModel<SearchState, SearchUserIntent>() {
+    BaseViewModel<SearchState, SearchUserIntent>() {
 
     private var lastPagination: Pagination? = null
     private var lastQuery: String? = null
@@ -26,8 +29,13 @@ class SearchViewModel(private val repository: GIFRepository) :
                     lastQuery = userIntent.query
                     lastPagination = null
                     _state.value = SearchState.Loading
-                    val resultNewQuery = repository.getGIFsByKeyword(keyWord = userIntent.query, offest = 0)
-                    _state.value = mapResultToState(resultNewQuery, true)
+                    repository.getGIFsByKeyword(keyWord = userIntent.query, offest = 0)
+                        .map {
+                            mapResultToState(result = it, newQuery = true)
+                        }
+                        .collect {
+                            _state.value = it
+                        }
                 }
             }
             SearchUserIntent.NextPage -> {
@@ -35,8 +43,15 @@ class SearchViewModel(private val repository: GIFRepository) :
                     lastQuery?.let { safeLastQuery ->
                         lastPagination?.let { safeLastPagination ->
                             if ((safeLastPagination.count + safeLastPagination.offset) < safeLastPagination.totalCount) {
-                                val resultNewPage = repository.getGIFsByKeyword(keyWord = safeLastQuery, offest = safeLastPagination.count + safeLastPagination.offset)
-                                _state.value = mapResultToState(resultNewPage, false)
+                                _state.value = SearchState.RequestingNewPage
+                                repository.getGIFsByKeyword(
+                                    keyWord = safeLastQuery,
+                                    offest = safeLastPagination.count + safeLastPagination.offset
+                                ).map {
+                                    mapResultToState(result = it, newQuery = false)
+                                }.collect {
+                                    _state.value = it
+                                }
                             } else {
                                 _state.value = SearchState.GetToEnd
                             }
@@ -51,12 +66,13 @@ class SearchViewModel(private val repository: GIFRepository) :
 
     private fun getRandomEmptyStat() {
         viewModelScope.launch {
-            val ramdomEmptyGif = repository.getRandomGif(randomEmptyTags[Random.nextInt(0, randomEmptyTags.size)])
-            if (ramdomEmptyGif is Result.Success) {
-                _state.value = SearchState.EmptyStat(randomEmptyGIF = ramdomEmptyGif.data.preview)
-            }
-
-
+            repository.getRandomGif(randomEmptyTags[Random.nextInt(0, randomEmptyTags.size)])
+                .collect { ramdomEmptyGif ->
+                    if (ramdomEmptyGif is Result.Success) {
+                        _state.value =
+                            SearchState.EmptyStat(randomEmptyGIF = ramdomEmptyGif.data.preview)
+                    }
+                }
         }
     }
 
@@ -74,7 +90,7 @@ class SearchViewModel(private val repository: GIFRepository) :
                     } else {
                         images.addAll(result.data.images)
                     }
-                    SearchState.ImageListStat(images.toList())
+                    SearchState.ImageListStat(images.map { GIFItemViewModel(gif = it) }.toList())
 
                 }
             }
