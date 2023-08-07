@@ -3,43 +3,48 @@ package com.malek.giffy.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.malek.giffy.domaine.GIFRepository
+import com.malek.giffy.utilities.formatError
+import com.malek.giffy.utilities.getGIFError
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class HomeViewModel(
     private val gifRepository: GIFRepository,
     private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
-    private val _state: MutableStateFlow<HomeState> = MutableStateFlow(HomeState.Init)
+    private val _state: MutableStateFlow<HomeState> = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state
     private val _reload: MutableSharedFlow<Unit> = MutableSharedFlow()
 
     init {
-        viewModelScope.launch {
-            _reload.onEach {
+        viewModelScope.launch(backgroundDispatcher) {
+            _reload.map {
                 _state.update {
-                    HomeState.Loading(it.imageUrl)
+                    it.copy(isLoading = true)
                 }
-                withContext(backgroundDispatcher) {
-                    _state.update {
-                        gifRepository.getRandomGif().map {
-                            HomeState.ImageState(it.imageUrl)
-                        }.recover {
-                            it.toErrorStat()
-                        }.getOrElse {
-                            it.toErrorStat()
-                        }
-                    }
+                gifRepository.getRandomGif().map {
+                    HomeState(
+                        isLoading = false,
+                        imageUrl = it.imageUrl,
+                        errorString = null,
+                        errorGIF = null
+                    )
+                }.recover {
+                    it.toHomeState()
+                }.getOrElse {
+                    it.toHomeState()
                 }
-            }.collect()
+            }.collect { nextState ->
+                _state.update {
+                    nextState
+                }
+            }
         }
     }
 
@@ -51,3 +56,11 @@ class HomeViewModel(
 
 
 }
+
+
+fun Throwable.toHomeState(): HomeState = HomeState(
+    isLoading = false,
+    imageUrl = null,
+    errorString = this.formatError(),
+    errorGIF = this.getGIFError()
+)

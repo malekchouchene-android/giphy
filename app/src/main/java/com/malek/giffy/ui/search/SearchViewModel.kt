@@ -2,7 +2,10 @@ package com.malek.giffy.ui.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.malek.giffy.domaine.*
+import com.malek.giffy.domaine.GIF
+import com.malek.giffy.domaine.GIFList
+import com.malek.giffy.domaine.GIFRepository
+import com.malek.giffy.domaine.Pagination
 import com.malek.giffy.utilities.formatError
 import com.malek.giffy.utilities.getGIFError
 import kotlinx.coroutines.Dispatchers

@@ -19,11 +19,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -34,10 +35,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import com.example.compose.AppTheme
 import com.malek.giffy.R
 import com.malek.giffy.domaine.GIF
 import com.malek.giffy.ui.home.GIFError
@@ -51,54 +56,52 @@ import kotlinx.coroutines.flow.filter
 fun SearchScreen(
     modifier: Modifier = Modifier,
     searchScreenState: StateFlow<SearchState>,
-    onUserAction: (UserAction) -> Unit
+    onUserAction: (UserAction) -> Unit,
+    onItemClick: (GIF) -> Unit
 ) {
-    MaterialTheme {
+    AppTheme {
         val state = searchScreenState.collectAsState()
         val stateValue = state.value
-        Scaffold(topBar = {
-            SearchView(modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-                onQuerySubmit = {
-                    onUserAction(UserAction.NewQuery(it))
-                })
-        }, modifier = modifier.fillMaxSize()) { safePadding ->
+        Scaffold(
+            topBar = {
+                Surface(Modifier.fillMaxWidth()) {
+                    SearchView(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onQuerySubmit = {
+                            onUserAction(UserAction.NewQuery(it))
+                        })
+                }
+
+
+            },
+            modifier = modifier.fillMaxSize()
+        ) { safePadding ->
             stateValue.imageList?.let { gifList ->
                 if (gifList.isEmpty()) {
-                    Box(
-                        Modifier
+                    EmptySearch(
+                        modifier = Modifier
                             .fillMaxSize()
                             .padding(safePadding),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        when (val errorGif = stateValue.errorGIF) {
-                            is String -> {
-                                GIFPreview(previewUrl = errorGif)
-                            }
-
-                            is Int -> {
-                                GIFError(errorGif = errorGif)
-                            }
-                        }
-
-                    }
+                        errorGIF = stateValue.errorGIF
+                    )
                 } else {
                     GIFGrid(
                         modifier = Modifier
                             .fillMaxSize(),
                         items = gifList,
                         contentPadding = PaddingValues(
-                            top = safePadding.calculateTopPadding() + 16.dp,
-                            bottom = safePadding.calculateBottomPadding() + 16.dp,
-                            start = safePadding.calculateStartPadding(LayoutDirection.Rtl) + 16.dp,
-                            end = safePadding.calculateEndPadding(LayoutDirection.Rtl) + 16.dp
+                            top = safePadding.calculateTopPadding() + 8.dp,
+                            bottom = safePadding.calculateBottomPadding() + 8.dp,
+                            start = safePadding.calculateStartPadding(LayoutDirection.Rtl) + 8.dp,
+                            end = safePadding.calculateEndPadding(LayoutDirection.Rtl) + 8.dp
                         ),
                         onItemClick = {
-
+                            onItemClick(it)
                         },
                         onNextPageRequested = {
-                            UserAction.NextPage
+                            onUserAction(UserAction.NextPage)
                         },
                         allItemLoaded = stateValue.allImageLoaded
                     )
@@ -108,6 +111,25 @@ fun SearchScreen(
 
             }
         }
+    }
+}
+
+@Composable
+fun EmptySearch(modifier: Modifier = Modifier, errorGIF: Any?) {
+    Box(
+        modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        when (errorGIF) {
+            is String -> {
+                GIFPreview(Modifier.fillMaxWidth(), previewUrl = errorGIF)
+            }
+
+            is Int -> {
+                GIFError(Modifier.fillMaxWidth(), errorGif = errorGIF)
+            }
+        }
+
     }
 }
 
@@ -154,12 +176,13 @@ fun GIFGrid(
                 lazyHorizontalGridState.layoutInfo.visibleItemsInfo.lastOrNull()
             lastVisibleItem?.let {
                 it.index == lazyHorizontalGridState.layoutInfo.totalItemsCount - 1
-            } ?: false
+            } ?: true
         }
     }
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = modifier,
+        state = lazyHorizontalGridState,
         contentPadding = contentPadding,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -172,7 +195,8 @@ fun GIFGrid(
                     .padding(horizontal = 4.dp)
                     .clickable {
                         onItemClick(it)
-                    })
+                    }
+            )
         }
     }
 
@@ -187,5 +211,3 @@ fun GIFGrid(
     }
 
 }
-
-

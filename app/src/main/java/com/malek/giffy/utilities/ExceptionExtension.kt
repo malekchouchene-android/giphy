@@ -1,7 +1,6 @@
 package com.malek.giffy.utilities
 
 import com.malek.giffy.R
-import java.lang.Exception
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException

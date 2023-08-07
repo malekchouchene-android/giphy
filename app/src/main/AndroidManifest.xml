@@ -11,7 +11,10 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Giffy">
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".ui.details.GIFDetailsActivity"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

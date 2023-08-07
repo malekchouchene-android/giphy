@@ -23,9 +23,9 @@ class HomeViewModelTest: BaseTestClass() {
         //WHEN
         homeViewModel.dispatchUserIntent(HomeUserIntent.GetNewImage)
         //Then
-        assertEquals(homeViewModel.state.value?.isLoading, false)
-        assertEquals(homeViewModel.state.value?.imageUrl, "test")
-        assertEquals(homeViewModel.state.value?.errorString, null)
+        assertEquals(homeViewModel.state.value.isLoading, false)
+        assertEquals(homeViewModel.state.value.imageUrl, "test")
+        assertEquals(homeViewModel.state.value.errorString, null)
     }
 
     @Test
@@ -35,10 +35,10 @@ class HomeViewModelTest: BaseTestClass() {
         //WHEN
         homeViewModel.dispatchUserIntent(HomeUserIntent.GetNewImage)
         //Then
-        assertEquals(homeViewModel.state.value?.isLoading, false)
-        assertEquals(homeViewModel.state.value?.imageUrl, null)
+        assertEquals(homeViewModel.state.value.isLoading, false)
+        assertEquals(homeViewModel.state.value.imageUrl, null)
         assertEquals(
-                context.getString(homeViewModel.state.value!!.errorString!!),
+                context.getString(homeViewModel.state.value.errorString!!),
                 context.getString(R.string.no_network_error)
         )
     }
@@ -50,10 +50,10 @@ class HomeViewModelTest: BaseTestClass() {
         //WHEN
         homeViewModel.dispatchUserIntent(HomeUserIntent.GetNewImage)
         //Then
-        assertEquals(homeViewModel.state.value?.isLoading, false)
-        assertEquals(homeViewModel.state.value?.imageUrl, null)
+        assertEquals(homeViewModel.state.value.isLoading, false)
+        assertEquals(homeViewModel.state.value.imageUrl, null)
         assertEquals(
-                context.getString(homeViewModel.state.value!!.errorString!!),
+                context.getString(homeViewModel.state.value.errorString!!),
                 context.getString(R.string.no_network_error)
         )
     }
@@ -65,10 +65,10 @@ class HomeViewModelTest: BaseTestClass() {
         //WHEN
         homeViewModel.dispatchUserIntent(HomeUserIntent.GetNewImage)
         //Then
-        assertEquals(homeViewModel.state.value?.isLoading, false)
-        assertEquals(homeViewModel.state.value?.imageUrl, null)
+        assertEquals(homeViewModel.state.value.isLoading, false)
+        assertEquals(homeViewModel.state.value.imageUrl, null)
         assertEquals(
-                context.getString(homeViewModel.state.value!!.errorString!!),
+                context.getString(homeViewModel.state.value.errorString!!),
                 context.getString(R.string.unexpected_error)
         )
     }

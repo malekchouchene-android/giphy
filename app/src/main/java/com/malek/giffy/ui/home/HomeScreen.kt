@@ -1,23 +1,25 @@
 package com.malek.giffy.ui.home
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -29,10 +31,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.compose.AppTheme
 import com.malek.giffy.R
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -45,8 +50,21 @@ fun HomeScreen(
     onFetchNewGifRequest: () -> Unit
 ) {
     val resources = LocalContext.current.resources
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val lifecycleEventObserver = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                onFetchNewGifRequest()
+            }
+        }
 
-    MaterialTheme {
+        lifecycleOwner.lifecycle.addObserver(lifecycleEventObserver)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(lifecycleEventObserver)
+        }
+    }
+    AppTheme {
         val state = homeStateFlow.collectAsState()
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
@@ -91,35 +109,41 @@ fun HomeScreen(
         Scaffold(
             modifier = modifier
                 .fillMaxSize()
-                .pullRefresh(pullRefreshState, true),
+                .pullRefresh(pullRefreshState),
             snackbarHost = { SnackbarHost(snackbarHostState) }) {
+
             Box(
                 Modifier
                     .fillMaxSize()
                     .padding(it)
-                    .pullRefresh(pullRefreshState),
+                    .pullRefresh(pullRefreshState)
+                    .verticalScroll(rememberScrollState()),
                 contentAlignment = Alignment.Center
             ) {
-
-                when (val value = state.value) {
-                    is HomeState.ErrorStat -> {
-                        GIFError(errorGif = value.errorGIF)
-                    }
-
-                    is HomeState.ImageState -> {
+                val stateValue = state.value
+                if (stateValue.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .width(50.dp)
+                    )
+                } else {
+                    stateValue.imageUrl?.let {
                         GIFPreview(
                             modifier = Modifier.fillMaxWidth(),
-                            previewUrl = value.imageUrl
+                            previewUrl = it
                         )
-                    }
-
-                    HomeState.Init, is HomeState.Loading -> {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .width(200.dp)
-                        )
+                    } ?: kotlin.run {
+                        stateValue.errorGIF?.let {
+                            GIFError(errorGif = it)
+                        }
                     }
                 }
+                PullRefreshIndicator(
+                    refreshing,
+                    pullRefreshState,
+                    Modifier.align(Alignment.TopCenter)
+                )
+
             }
         }
 
@@ -128,13 +152,18 @@ fun HomeScreen(
 
 
 @Composable
-fun GIFPreview(modifier: Modifier = Modifier, previewUrl: String, placeholder: Painter? = null) {
+fun GIFPreview(
+    modifier: Modifier = Modifier,
+    previewUrl: String,
+    placeholder: Painter? = null,
+    contentScale: ContentScale = ContentScale.FillWidth
+) {
     AsyncImage(
         model = previewUrl,
         contentDescription = "",
         modifier = modifier,
         placeholder = placeholder,
-        contentScale = ContentScale.FillWidth
+        contentScale = contentScale
     )
 }
 
