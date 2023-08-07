@@ -2,7 +2,6 @@ package com.malek.giffy
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.malek.giffy.ui.home.HomeUserIntent
 import com.malek.giffy.ui.home.HomeViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Assert.assertEquals

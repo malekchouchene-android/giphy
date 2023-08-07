@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.flow
 import java.lang.Exception
 
 class GifRepositoryTest() : GIFRepository {
-    override fun getRandomGif(tag: String?): Flow<Result<GIF>> {
+    override suspend fun getRandomGif(tag: String?): Flow<Result<GIF>> {
         return flow<Result<GIF>> {
             emit(
                 Result.Success(
@@ -45,7 +45,7 @@ class GifRepositoryTest() : GIFRepository {
 }
 
 class GifRepositoryEmptyTest : GIFRepository {
-    override fun getRandomGif(tag: String?): Flow<Result<GIF>> {
+    override suspend fun getRandomGif(tag: String?): Flow<Result<GIF>> {
         return flow {
             emit(
                 Result.Success(
@@ -77,7 +77,7 @@ class GifRepositoryEmptyTest : GIFRepository {
 
 
 class GifRepositoryError(val e: Exception) : GIFRepository {
-    override fun getRandomGif(tag: String?): Flow<Result<GIF>> {
+    override suspend fun getRandomGif(tag: String?): Flow<Result<GIF>> {
         return flow {
             emit(Result.Error(e))
         }

@@ -16,8 +16,7 @@ import com.malek.giffy.utilities.showGIF
 
 
 class GIFDetailsFragment : DialogFragment() {
-    private val gifDetailsFragmentArgs: GIFDetailsFragmentArgs by navArgs()
-    private val activityViewModel by activityViewModels<MainViewModel>()
+   /* private val activityViewModel by activityViewModels<MainViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
@@ -86,6 +85,6 @@ class GIFDetailsFragment : DialogFragment() {
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         activityViewModel.shouldShowNavView()
-    }
+    }*/
 
 }

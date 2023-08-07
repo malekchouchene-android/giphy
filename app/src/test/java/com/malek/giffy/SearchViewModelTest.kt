@@ -4,12 +4,11 @@ import android.os.Build
 import com.google.common.truth.Truth
 import com.malek.giffy.domaine.*
 import com.malek.giffy.ui.search.SearchState
-import com.malek.giffy.ui.search.SearchUserIntent
+import com.malek.giffy.ui.search.UserAction
 import com.malek.giffy.ui.search.SearchViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -33,14 +32,14 @@ class SearchViewModelTest : BaseTestClass() {
     @Test
     fun should_update_query_when_user_set_new_query() {
         val searchViewModel = SearchViewModel(repository = GifRepositoryTest())
-        searchViewModel.dispatchUserIntent(SearchUserIntent.NewQuery("test"))
+        searchViewModel.dispatchUserAction(UserAction.NewQuery("test"))
         Assert.assertEquals(searchViewModel.getPrivateProperty("lastQuery"), "test")
     }
 
     @Test
     fun should_update_pagination_when_user_set_new_query() {
         val searchViewModel = SearchViewModel(repository = GifRepositoryTest())
-        searchViewModel.dispatchUserIntent(SearchUserIntent.NewQuery("test"))
+        searchViewModel.dispatchUserAction(UserAction.NewQuery("test"))
         Assert.assertEquals(
             searchViewModel.getPrivateProperty("lastPagination"),
             Pagination(count = 1, totalCount = 1, offset = 0)
@@ -50,7 +49,7 @@ class SearchViewModelTest : BaseTestClass() {
     @Test
     fun should_map_empty_state_when_no_result() {
         val searchViewModel = SearchViewModel(repository = GifRepositoryEmptyTest())
-        searchViewModel.dispatchUserIntent(SearchUserIntent.NewQuery("empty"))
+        searchViewModel.dispatchUserAction(UserAction.NewQuery("empty"))
         Truth.assertThat(searchViewModel.state.value)
             .isInstanceOf(SearchState.EmptyStat::class.java)
     }
@@ -58,7 +57,7 @@ class SearchViewModelTest : BaseTestClass() {
     @Test
     fun should_map_error_state_when_error() {
         val searchViewModel = SearchViewModel(repository = GifRepositoryError(ConnectException()))
-        searchViewModel.dispatchUserIntent(SearchUserIntent.NewQuery("empty"))
+        searchViewModel.dispatchUserAction(UserAction.NewQuery("empty"))
         Truth.assertThat(searchViewModel.state.value)
             .isInstanceOf(SearchState.ErrorStat::class.java)
     }
@@ -81,7 +80,7 @@ class SearchViewModelTest : BaseTestClass() {
             )
         }
         val searchViewModel = SearchViewModel(repository = object : GIFRepository {
-            override fun getRandomGif(tag: String?): Flow<Result<GIF>> {
+            override suspend fun getRandomGif(tag: String?): Flow<Result<GIF>> {
                 return flow {
                     emit(
                         Result.Success(
@@ -109,8 +108,8 @@ class SearchViewModelTest : BaseTestClass() {
         })
         //WHEN
 
-        searchViewModel.dispatchUserIntent(SearchUserIntent.NewQuery("test"))
-        searchViewModel.dispatchUserIntent(SearchUserIntent.NextPage)
+        searchViewModel.dispatchUserAction(UserAction.NewQuery("test"))
+        searchViewModel.dispatchUserAction(UserAction.NextPage)
         //THEN
         Truth.assertThat(searchViewModel.state.value).isInstanceOf(SearchState.GetToEnd::class.java)
         verify(mockSuspendGetList, times(1)).suspendFunctionMock()
@@ -142,7 +141,7 @@ class SearchViewModelTest : BaseTestClass() {
         }
         var startRequest = true
         val searchViewModel = SearchViewModel(repository = object : GIFRepository {
-            override fun getRandomGif(tag: String?): Flow<Result<GIF>> {
+            override suspend fun getRandomGif(tag: String?): Flow<Result<GIF>> {
                 return flow {
                     emit(
                         Result.Success(
@@ -180,8 +179,8 @@ class SearchViewModelTest : BaseTestClass() {
         })
         //WHEN
 
-        searchViewModel.dispatchUserIntent(SearchUserIntent.NewQuery("test"))
-        searchViewModel.dispatchUserIntent(SearchUserIntent.NextPage)
+        searchViewModel.dispatchUserAction(UserAction.NewQuery("test"))
+        searchViewModel.dispatchUserAction(UserAction.NextPage)
 
     }
 

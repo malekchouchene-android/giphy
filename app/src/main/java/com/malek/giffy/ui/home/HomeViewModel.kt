@@ -3,38 +3,51 @@ package com.malek.giffy.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.malek.giffy.domaine.GIFRepository
-import com.malek.giffy.domaine.Result
-import com.malek.giffy.ui.BaseViewModel
-import com.malek.giffy.utilities.formatError
-import com.malek.giffy.utilities.getGIFError
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class HomeViewModel(private val gifRepository: GIFRepository) :
-    BaseViewModel<HomeState, HomeUserIntent>() {
+class HomeViewModel(
+    private val gifRepository: GIFRepository,
+    private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.IO
+) : ViewModel() {
+    private val _state: MutableStateFlow<HomeState> = MutableStateFlow(HomeState.Init)
+    val state: StateFlow<HomeState> = _state
+    private val _reload: MutableSharedFlow<Unit> = MutableSharedFlow()
 
-    private fun getNewImage() {
-        _state.value = HomeState.Loading
+    init {
         viewModelScope.launch {
-            gifRepository.getRandomGif(null)
-                .collect {
-                    when (it) {
-                        is Result.Success -> {
-                            _state.value = HomeState.ImageState(it.data.imageUrl)
-                        }
-                        is Result.Error -> {
-                            _state.value = HomeState.ErrorStat(it.exception)
+            _reload.onEach {
+                _state.update {
+                    HomeState.Loading(it.imageUrl)
+                }
+                withContext(backgroundDispatcher) {
+                    _state.update {
+                        gifRepository.getRandomGif().map {
+                            HomeState.ImageState(it.imageUrl)
+                        }.recover {
+                            it.toErrorStat()
+                        }.getOrElse {
+                            it.toErrorStat()
                         }
                     }
                 }
-
+            }.collect()
         }
     }
 
-    override fun dispatchUserIntent(userIntent: HomeUserIntent) {
-        getNewImage()
+    fun fetchNewGIF() {
+        viewModelScope.launch {
+            _reload.emit(Unit)
+        }
     }
+
 
 }

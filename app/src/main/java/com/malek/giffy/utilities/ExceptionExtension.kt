@@ -7,7 +7,7 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import kotlin.random.Random
 
-val gifError = arrayOf(R.raw.error_1, R.raw.error_2, R.raw.error_3)
+private val gifError = arrayOf(R.raw.error_1, R.raw.error_2, R.raw.error_3)
 
 fun Throwable.formatError() =
     if (this.isNoConnexionNetwork()) R.string.no_network_error else R.string.unexpected_error
