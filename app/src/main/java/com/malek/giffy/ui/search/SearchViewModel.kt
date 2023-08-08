@@ -8,6 +8,7 @@ import com.malek.giffy.domaine.GIFRepository
 import com.malek.giffy.domaine.Pagination
 import com.malek.giffy.utilities.formatError
 import com.malek.giffy.utilities.getGIFError
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,10 +16,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.random.Random
 
-class SearchViewModel(private val repository: GIFRepository) :
+class SearchViewModel(
+    private val repository: GIFRepository,
+    val backgroundDispatcher: CoroutineDispatcher = Dispatchers.IO
+) :
     ViewModel() {
     private val _state: MutableStateFlow<SearchState> = MutableStateFlow(SearchState())
     val state: StateFlow<SearchState> = _state
@@ -33,12 +36,11 @@ class SearchViewModel(private val repository: GIFRepository) :
         MutableSharedFlow()
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(backgroundDispatcher) {
             _searchQueryGIF.collectLatest {
-                withContext(Dispatchers.IO) {
-                    val result = repository.getGIFsByKeyword(keyWord = it.query, offest = it.offset)
-                    mapResultToState(result)
-                }
+                val result = repository.getGIFsByKeyword(keyWord = it.query, offest = it.offset)
+                mapResultToState(result)
+
             }
         }
 
@@ -47,7 +49,7 @@ class SearchViewModel(private val repository: GIFRepository) :
     fun dispatchUserAction(userIntent: UserAction) {
         when (userIntent) {
             is UserAction.NewQuery -> {
-                viewModelScope.launch(Dispatchers.IO) {
+                viewModelScope.launch(backgroundDispatcher) {
                     lastPagination = null
                     lastQuery = userIntent.query
                     _state.update {
@@ -63,7 +65,9 @@ class SearchViewModel(private val repository: GIFRepository) :
                 viewModelScope.launch {
                     lastQuery?.let { safeLastQuery ->
                         lastPagination?.let { safeLastPagination ->
-                            if ((safeLastPagination.count + safeLastPagination.offset) < safeLastPagination.totalCount) {
+                            if (
+                                (safeLastPagination.count + safeLastPagination.offset) < safeLastPagination.totalCount
+                            ) {
                                 _state.update {
                                     it.copy(loading = true)
                                 }
@@ -89,7 +93,7 @@ class SearchViewModel(private val repository: GIFRepository) :
     }
 
     private fun setRandomEmptyStat() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(backgroundDispatcher) {
             repository.getRandomGif(randomEmptyTags[Random.nextInt(0, randomEmptyTags.size)])
                 .onSuccess { gif ->
                     _state.update {

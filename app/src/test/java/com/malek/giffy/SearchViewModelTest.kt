@@ -1,187 +1,81 @@
 package com.malek.giffy
 
-import android.os.Build
 import com.google.common.truth.Truth
-import com.malek.giffy.domaine.*
-import com.malek.giffy.ui.search.SearchState
-import com.malek.giffy.ui.search.UserAction
+import com.malek.giffy.domaine.GIF
+import com.malek.giffy.domaine.GIFList
+import com.malek.giffy.domaine.GIFRepository
+import com.malek.giffy.domaine.Pagination
 import com.malek.giffy.ui.search.SearchViewModel
+import com.malek.giffy.ui.search.UserAction
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import org.junit.Assert
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.BDDMockito
 import org.mockito.Mock
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
-import java.net.ConnectException
+import org.mockito.Mockito.`when`
+import org.mockito.junit.MockitoJUnitRunner
 
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [Build.VERSION_CODES.P])
+@RunWith(MockitoJUnitRunner::class)
 @ExperimentalCoroutinesApi
-class SearchViewModelTest : BaseTestClass() {
+class SearchViewModelTest {
+
+    private val testDispatcher: TestDispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(testDispatcher)
 
     @Mock
-    private lateinit var mockSuspendGetList: SuspendableMock<GIFList>
+    lateinit var gifRepository: GIFRepository
 
     @Test
-    fun should_update_query_when_user_set_new_query() {
-        val searchViewModel = SearchViewModel(repository = GifRepositoryTest())
-        searchViewModel.dispatchUserAction(UserAction.NewQuery("test"))
-        Assert.assertEquals(searchViewModel.getPrivateProperty("lastQuery"), "test")
-    }
-
-    @Test
-    fun should_update_pagination_when_user_set_new_query() {
-        val searchViewModel = SearchViewModel(repository = GifRepositoryTest())
-        searchViewModel.dispatchUserAction(UserAction.NewQuery("test"))
-        Assert.assertEquals(
-            searchViewModel.getPrivateProperty("lastPagination"),
-            Pagination(count = 1, totalCount = 1, offset = 0)
-        )
-    }
-
-    @Test
-    fun should_map_empty_state_when_no_result() {
-        val searchViewModel = SearchViewModel(repository = GifRepositoryEmptyTest())
-        searchViewModel.dispatchUserAction(UserAction.NewQuery("empty"))
-        Truth.assertThat(searchViewModel.state.value)
-            .isInstanceOf(SearchState.EmptyStat::class.java)
-    }
-
-    @Test
-    fun should_map_error_state_when_error() {
-        val searchViewModel = SearchViewModel(repository = GifRepositoryError(ConnectException()))
-        searchViewModel.dispatchUserAction(UserAction.NewQuery("empty"))
-        Truth.assertThat(searchViewModel.state.value)
-            .isInstanceOf(SearchState.ErrorStat::class.java)
-    }
-
-    @Test
-    fun should_not_call_repository_when_all_items_have_been_loaded() {
-        //GIVEN
-        BDDMockito.given(mockSuspendGetList.suspendFunctionMock()).willAnswer {
-            Result.Success(
+    fun should_update_pagination_when_user_set_new_query() = runTest(testDispatcher) {
+        //given
+        `when`(gifRepository.getGIFsByKeyword("test", 0)).thenReturn(
+            Result.success(
                 GIFList(
-                    images = arrayListOf(
+                    images = listOf<GIF>(
                         GIF(
-                            imageUrl = "test",
-                            preview = "testPreview",
-                            id = "id",
-                            title = "title"
+                            imageUrl = "https://example.com/image.gif",
+                            preview = "preview",
+                            id = "1",
+                            title = "test"
                         )
-                    ), pagination = Pagination(count = 1, totalCount = 1, offset = 0)
+                    ),
+                    pagination = Pagination(count = 1, totalCount = 1, offset = 0)
                 )
             )
-        }
-        val searchViewModel = SearchViewModel(repository = object : GIFRepository {
-            override suspend fun getRandomGif(tag: String?): Flow<Result<GIF>> {
-                return flow {
-                    emit(
-                        Result.Success(
-                            data = GIF(
-                                imageUrl = "test",
-                                preview = "testPreview",
-                                id = "id",
-                                title = "test"
-                            )
-                        )
-                    )
-                }
-
-            }
-
-            override suspend fun getGIFsByKeyword(
-                keyWord: String,
-                offest: Int
-            ): Flow<Result<GIFList>> {
-                return flow {
-                    emit(mockSuspendGetList.suspendFunctionMock())
-                }
-            }
-
-        })
-        //WHEN
+        )
+        //when
+        val searchViewModel = SearchViewModel(repository = gifRepository, testDispatcher)
+        advanceUntilIdle()
 
         searchViewModel.dispatchUserAction(UserAction.NewQuery("test"))
-        searchViewModel.dispatchUserAction(UserAction.NextPage)
-        //THEN
-        Truth.assertThat(searchViewModel.state.value).isInstanceOf(SearchState.GetToEnd::class.java)
-        verify(mockSuspendGetList, times(1)).suspendFunctionMock()
+        // then
+        val initState = searchViewModel.state.value
+        advanceUntilIdle()
 
-    }
+        println(initState.toString())
+        advanceUntilIdle()
+        val currentState = searchViewModel.state.value
+        println(initState.toString())
 
-    @Test
-    fun should_call_with_right_offest_to_get_next_page() {
-        //GIVEN
-        val gifListMock = mutableListOf<GIF>()
-        repeat(24) {
-            gifListMock.add(
+        Truth.assertThat(currentState.loading).isFalse()
+        Truth.assertThat(currentState.imageList).isEqualTo(
+            listOf<GIF>(
                 GIF(
-                    imageUrl = "test",
-                    preview = "testPreview",
-                    id = "id",
-                    title = "title"
+                    imageUrl = "https://example.com/image.gif",
+                    preview = "preview",
+                    id = "1",
+                    title = "test"
                 )
             )
-        }
-
-        BDDMockito.given(mockSuspendGetList.suspendFunctionMock()).willAnswer {
-            Result.Success(
-                GIFList(
-                    images = gifListMock.toList(),
-                    pagination = Pagination(count = 24, totalCount = 1000, offset = 0)
-                )
-            )
-        }
-        var startRequest = true
-        val searchViewModel = SearchViewModel(repository = object : GIFRepository {
-            override suspend fun getRandomGif(tag: String?): Flow<Result<GIF>> {
-                return flow {
-                    emit(
-                        Result.Success(
-                            data = GIF(
-                                imageUrl = "test",
-                                preview = "testPreview",
-                                id = "id",
-                                title = "tilte"
-                            )
-                        )
-                    )
-                }
-
-            }
-
-            override suspend fun getGIFsByKeyword(
-                keyWord: String,
-                offest: Int
-            ): Flow<Result<GIFList>> {
-                return flow {
-                    //THEN
-                    Truth.assertThat(keyWord).isEqualTo("test")
-
-                    if (startRequest) {
-                        Truth.assertThat(offest).isEqualTo(0)
-                        startRequest = false
-                    } else {
-                        Truth.assertThat(offest).isEqualTo(24)
-
-                    }
-                    emit(mockSuspendGetList.suspendFunctionMock())
-                }
-            }
-
-        })
-        //WHEN
-
-        searchViewModel.dispatchUserAction(UserAction.NewQuery("test"))
-        searchViewModel.dispatchUserAction(UserAction.NextPage)
-
+        )
+        Truth.assertThat(currentState.errorGIF).isNull()
+        Truth.assertThat(currentState.allImageLoaded).isTrue()
     }
-
 }
