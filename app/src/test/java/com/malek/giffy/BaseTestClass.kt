@@ -18,14 +18,10 @@ import org.robolectric.annotation.Config
 @Config(sdk = [Build.VERSION_CODES.P])
 @ExperimentalCoroutinesApi
 abstract class BaseTestClass {
-    @JvmField
-    @Rule
-    var instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
-        Dispatchers.setMain(Dispatchers.Unconfined)
+        MockitoAnnotations.openMocks(this)
     }
 
     @After
@@ -33,9 +29,3 @@ abstract class BaseTestClass {
         stopKoin()
     }
 }
-
-inline fun <reified T : Any, R> T.getPrivateProperty(name: String): R? =
-        T::class.java
-                .getDeclaredField(name)
-                .apply { isAccessible = true }
-                .get(this) as R
